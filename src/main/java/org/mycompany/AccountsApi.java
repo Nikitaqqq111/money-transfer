@@ -7,9 +7,7 @@ import org.mycompany.service.AccountsApiServiceImpl;
 
 import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 @Path("/accounts")
@@ -21,24 +19,21 @@ public class AccountsApi {
     @POST
     @Path("/createWithList")
     @Produces({"application/json"})
-    public Response createAccountsWithListInput(List<Account> body, @Context SecurityContext securityContext)
-            throws NotFoundException {
-        return delegate.createAccountsWithListInput(body, securityContext);
+    public Response createAccountsWithListInput(List<Account> body) {
+        return delegate.createAccountsWithListInput(body);
     }
 
     @GET
     @Produces({"application/json"})
-    public Response getAccounts(@Context SecurityContext securityContext)
-            throws NotFoundException {
-        return delegate.getAccounts(securityContext);
+    public Response getAccounts() {
+        return delegate.getAccounts();
     }
 
     @POST
     @Path("/transfer")
     @Produces({"application/json"})
-    public Response transferMoney(TransferInfo body, @Context SecurityContext securityContext)
-            throws NotFoundException {
-        return delegate.transferMoney(body, securityContext);
+    public Response transferMoney(TransferInfo body) {
+        return delegate.transferMoney(body);
     }
 
 }

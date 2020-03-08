@@ -4,6 +4,7 @@ import org.mycompany.economics.checks.ResultCheck;
 import org.mycompany.economics.core.MoneyTransfer;
 import org.mycompany.economics.model.Balance;
 import org.mycompany.economics.model.IAccount;
+import org.mycompany.economics.model.IBalance;
 import org.mycompany.economics.model.ZeroOverdraftAccount;
 import org.mycompany.economics.storage.RuntimeAccountStorage;
 import org.mycompany.model.Account;
@@ -17,7 +18,12 @@ import java.util.stream.Collectors;
 
 public class AccountService implements IAccountsService {
 
-    private final Function<Account, IAccount> accountInConverter = (account) -> new ZeroOverdraftAccount(account.getId(), Currency.getInstance(account.getCur()));
+    private final Function<Account, IAccount> accountInConverter = (account) -> {
+        Currency accountCurrency = Currency.getInstance(account.getCur());
+        IBalance accountBalance = new Balance(accountCurrency, new BigDecimal(account.getBalance()));
+        return new ZeroOverdraftAccount(account.getId(), accountCurrency, accountBalance);
+    };
+
     private final Function<IAccount, Account> accountOutConverter = (account) -> {
         Account outAccount = new Account();
         outAccount.id(account.getId());
@@ -44,8 +50,14 @@ public class AccountService implements IAccountsService {
 
     @Override
     public ResultCheck transferMoney(TransferInfo transferInfo) {
-        return moneyTransfer.transfer(storage.findById(transferInfo.getFrom()),
-                storage.findById(transferInfo.getTo()),
-                new Balance(Currency.getInstance(transferInfo.getCur()), new BigDecimal(transferInfo.getAmount())));
+        IAccount from = storage.findById(transferInfo.getFrom());
+        if (from == null) {
+            return new ResultCheck("Unknown account: " + transferInfo.getFrom());
+        }
+        IAccount to = storage.findById(transferInfo.getTo());
+        if (to == null) {
+            return new ResultCheck("Unknown account: " + transferInfo.getTo());
+        }
+        return moneyTransfer.transfer(from, to, new Balance(Currency.getInstance(transferInfo.getCur()), new BigDecimal(transferInfo.getAmount())));
     }
 }

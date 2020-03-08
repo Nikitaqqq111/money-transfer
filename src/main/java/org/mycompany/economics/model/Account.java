@@ -20,7 +20,7 @@ public abstract class Account implements IAccount {
         this.checks = checks;
     }
 
-    Account(String id, Currency currency, Balance balance, List<ITransferCheck> checks) {
+    Account(String id, Currency currency, IBalance balance, List<ITransferCheck> checks) {
         this.id = id;
         this.currency = currency;
         this.balance = balance;
@@ -43,6 +43,11 @@ public abstract class Account implements IAccount {
     }
 
     @Override
+    public ResultCheck isUpdateBalanceAvailable(IAccount account, IBalance delta, Operation operation) {
+        return isUpdateBalanceAvailable(account, delta, checks, operation);
+    }
+
+    @Override
     public ResultCheck updateBalanceSafety(IBalance delta, Operation operation) {
         ResultCheck resultCheck = isUpdateBalanceAvailable(this, delta, checks, operation);
         if (resultCheck.ok) {
@@ -51,7 +56,7 @@ public abstract class Account implements IAccount {
         return resultCheck;
     }
 
-    private ResultCheck isUpdateBalanceAvailable(Account account, IBalance delta, List<ITransferCheck> checks, Operation operation) {
+    private ResultCheck isUpdateBalanceAvailable(IAccount account, IBalance delta, List<ITransferCheck> checks, Operation operation) {
         return checks.stream()
                 .map(transferCheck -> transferCheck.check(account, delta, operation))
                 .filter(resultCheck -> !resultCheck.ok)

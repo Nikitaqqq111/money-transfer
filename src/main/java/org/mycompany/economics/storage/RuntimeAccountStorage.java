@@ -10,6 +10,16 @@ public class RuntimeAccountStorage implements IStorage<String, IAccount> {
 
     private final ConcurrentHashMap<String, IAccount> store = new ConcurrentHashMap<>();
 
+    public RuntimeAccountStorage() {
+    }
+
+    /*
+     * for testing purposes
+     */
+    RuntimeAccountStorage(List<IAccount> accounts) {
+        accounts.forEach(account -> store.put(account.getId(), account));
+    }
+
     @Override
     public IAccount findById(String id) {
         return store.get(id);

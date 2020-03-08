@@ -4,7 +4,6 @@ import org.mycompany.economics.checks.ResultCheck;
 import org.mycompany.economics.model.IAccount;
 import org.mycompany.economics.model.IBalance;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,9 +29,8 @@ public class MoneyTransfer {
         if (lockTo == null) {
             return new ResultCheck("Unknown To account: " + to.getId());
         }
-
         //avoiding a deadlock
-        if (from.getId().compareTo(to.getId()) < 0) {
+        if (from.compareTo(to) < 0) {
             try {
                 lockFrom.lock();
                 try {
@@ -60,11 +58,16 @@ public class MoneyTransfer {
     }
 
     private ResultCheck safeTransferUnderLocks(IAccount from, IAccount to, IBalance delta) {
-        ResultCheck resultCheck = from.updateBalanceSafety(delta, DECREASE);
-        if (resultCheck.ok) {
-            //increasing is a safe operation, we don't need some rollback here
-            to.updateBalanceSafety(delta, INCREASE);
+        ResultCheck resultCheck = from.isUpdateBalanceAvailable(from, delta, DECREASE);
+        if (!resultCheck.ok) {
+            return resultCheck;
         }
-        return resultCheck;
+        resultCheck = from.isUpdateBalanceAvailable(to, delta, INCREASE);
+        if (!resultCheck.ok) {
+            return resultCheck;
+        }
+        from.updateBalanceSafety(delta, DECREASE);
+        to.updateBalanceSafety(delta, INCREASE);
+        return new ResultCheck();
     }
 }

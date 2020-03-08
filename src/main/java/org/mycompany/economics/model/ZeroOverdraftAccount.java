@@ -13,8 +13,13 @@ public class ZeroOverdraftAccount extends Account {
                 Arrays.asList(new ZeroOverdraftTransferCheck(), new SameCurrencyTransferCheck()));
     }
 
-    public ZeroOverdraftAccount(String id, Currency currency, Balance balance) {
+    public ZeroOverdraftAccount(String id, Currency currency, IBalance balance) {
         super(id, currency, balance,
                 Arrays.asList(new ZeroOverdraftTransferCheck(), new SameCurrencyTransferCheck()));
+    }
+
+    @Override
+    public int compareTo(IAccount account) {
+        return this.getId().concat(this.getCurrency().getCurrencyCode()).compareTo(account.getId().concat(account.getCurrency().getCurrencyCode()));
     }
 }
